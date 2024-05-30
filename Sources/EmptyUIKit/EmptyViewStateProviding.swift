@@ -14,9 +14,7 @@ public protocol EmptyViewStateProviding: AnyObject {
 extension EmptyViewStateProviding where Self: UIView {
 
   func reloadEmptyViewIfPossible() {
-    if let emptyView = emptyView {
-      emptyView.reload()
-    }
+    emptyView?.reload()
   }
 }
 

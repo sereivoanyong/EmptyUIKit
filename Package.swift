@@ -1,11 +1,11 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.10
 
 import PackageDescription
 
 let package = Package(
   name: "EmptyUIKit",
   platforms: [
-    .iOS(.v11),
+    .iOS(.v13),
     .macCatalyst(.v13)
   ],
   products: [

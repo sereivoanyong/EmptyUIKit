@@ -43,14 +43,14 @@ open class EmptyView: UIView {
 
   // This is not needed if the empty view is attached to either `UICollectionView` or `UITableView`,
   // and the provided state is never `.error`
-  weak open var stateProvider: EmptyViewStateProviding?
+  open weak var stateProvider: EmptyViewStateProviding?
 
-  weak open var dataSource: EmptyViewDataSource?
+  open weak var dataSource: EmptyViewDataSource?
 
   open private(set) var state: State? {
     didSet {
       prepareForReuse()
-      if let state = state {
+      if let state {
         dataSource?.emptyView(self, configureContentFor: state)
         reloadHiddenStates()
         isHidden = false
@@ -75,42 +75,44 @@ open class EmptyView: UIView {
   lazy open private(set) var imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFit
+    imageView.tintColor = .tertiaryLabel
+    imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 48)
     stackView.insertArrangedSubview(imageView, at: 0)
     _imageView = imageView
     return imageView
   }()
 
-  private var _titleLabel: UILabel?
-  lazy open private(set) var titleLabel: UILabel = {
+  private var _textLabel: UILabel?
+  lazy open private(set) var textLabel: UILabel = {
     let label = UILabel()
-    label.font = .systemFont(ofSize: 27)
+    label.font = .systemFont(ofSize: 22, weight: .semibold)
     label.textAlignment = .center
-    label.textColor = UIColor(white: 0.6, alpha: 1)
+    label.textColor = .secondaryLabel
     label.numberOfLines = 0
-    if let _imageView = _imageView, let index = stackView.arrangedSubviews.firstIndex(of: _imageView) {
+    if let _imageView, let index = stackView.arrangedSubviews.firstIndex(of: _imageView) {
       stackView.insertArrangedSubview(label, at: index + 1)
     } else {
       stackView.insertArrangedSubview(label, at: 0)
     }
-    _titleLabel = label
+    _textLabel = label
     return label
   }()
 
-  private var _messageLabel: UILabel?
-  lazy open private(set) var messageLabel: UILabel = {
+  private var _secondaryTextLabel: UILabel?
+  lazy open private(set) var secondaryTextLabel: UILabel = {
     let label = UILabel()
-    label.font = .systemFont(ofSize: 17)
+    label.font = .systemFont(ofSize: 14)
     label.textAlignment = .center
-    label.textColor = UIColor(white: 0.6, alpha: 1)
+    label.textColor = .tertiaryLabel
     label.numberOfLines = 0
-    if let _titleLabel = _titleLabel, let index = stackView.arrangedSubviews.firstIndex(of: _titleLabel) {
+    if let _textLabel, let index = stackView.arrangedSubviews.firstIndex(of: _textLabel) {
       stackView.insertArrangedSubview(label, at: index + 1)
-    } else if let _imageView = _imageView, let index = stackView.arrangedSubviews.firstIndex(of: _imageView) {
+    } else if let _imageView, let index = stackView.arrangedSubviews.firstIndex(of: _imageView) {
       stackView.insertArrangedSubview(label, at: index + 1)
     } else {
       stackView.insertArrangedSubview(label, at: 0)
     }
-    _messageLabel = label
+    _secondaryTextLabel = label
     return label
   }()
 
@@ -125,54 +127,54 @@ open class EmptyView: UIView {
   open var image: UIImage? {
     get { return _imageView?.image }
     set {
-      if let _imageView = _imageView {
+      if let _imageView {
         _imageView.image = newValue
-      } else if let newValue = newValue {
+      } else if let newValue {
         imageView.image = newValue
       }
     }
   }
 
-  open var title: String? {
-    get { return _titleLabel?.text }
+  open var text: String? {
+    get { return _textLabel?.text }
     set {
-      if let _titleLabel = _titleLabel {
-        _titleLabel.text = newValue
-      } else if let newValue = newValue, !newValue.isEmpty {
-        titleLabel.text = newValue
+      if let _textLabel {
+        _textLabel.text = newValue
+      } else if let newValue, !newValue.isEmpty {
+        textLabel.text = newValue
       }
     }
   }
 
-  open var attributedTitle: NSAttributedString? {
-    get { return _titleLabel?.attributedText }
+  open var attributedText: NSAttributedString? {
+    get { return _textLabel?.attributedText }
     set {
-      if let _titleLabel = _titleLabel {
-        _titleLabel.attributedText = newValue
-      } else if let newValue = newValue {
-        titleLabel.attributedText = newValue
+      if let _textLabel {
+        _textLabel.attributedText = newValue
+      } else if let newValue {
+        textLabel.attributedText = newValue
       }
     }
   }
 
-  open var message: String? {
-    get { return _messageLabel?.text }
+  open var secondaryText: String? {
+    get { return _secondaryTextLabel?.text }
     set {
-      if let _messageLabel = _messageLabel {
-        _messageLabel.text = newValue
-      } else if let newValue = newValue, !newValue.isEmpty {
-        messageLabel.text = newValue
+      if let _secondaryTextLabel {
+        _secondaryTextLabel.text = newValue
+      } else if let newValue, !newValue.isEmpty {
+        secondaryTextLabel.text = newValue
       }
     }
   }
 
-  open var attributedMessage: NSAttributedString? {
-    get { return _messageLabel?.attributedText }
+  open var secondaryAttributedText: NSAttributedString? {
+    get { return _secondaryTextLabel?.attributedText }
     set {
-      if let _messageLabel = _messageLabel {
-        _messageLabel.attributedText = newValue
-      } else if let newValue = newValue {
-        messageLabel.attributedText = newValue
+      if let _secondaryTextLabel {
+        _secondaryTextLabel.attributedText = newValue
+      } else if let newValue {
+        secondaryTextLabel.attributedText = newValue
       }
     }
   }
@@ -192,9 +194,9 @@ open class EmptyView: UIView {
   private func commonInit() {
     isHidden = true
 
-    stackView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(stackView)
 
+    stackView.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
       stackView.topAnchor.constraint(equalTo: topAnchor),
       stackView.leftAnchor.constraint(equalTo: leftAnchor),
@@ -215,7 +217,7 @@ open class EmptyView: UIView {
   }
 
   open func prepareForReuse() {
-    if let dataSource = dataSource {
+    if let dataSource {
       dataSource.emptyViewPrepareForReuse(self)
     } else {
       reset()
@@ -226,24 +228,25 @@ open class EmptyView: UIView {
 
   @usableFromInline
   func reset() {
-    if let _imageView = _imageView {
+    if let _imageView {
       _imageView.image = nil
     }
-    if let _titleLabel = _titleLabel {
-      _titleLabel.text = nil
-      _titleLabel.attributedText = nil
+    if let _textLabel {
+      _textLabel.text = nil
+      _textLabel.attributedText = nil
     }
-    if let _messageLabel = _messageLabel {
-      _messageLabel.text = nil
-      _messageLabel.attributedText = nil
+    if let _secondaryTextLabel {
+      _secondaryTextLabel.text = nil
+      _secondaryTextLabel.attributedText = nil
     }
-    if let _button = _button {
+    if let _button {
       _button.setTitle(nil, for: .normal)
       _button.setAttributedTitle(nil, for: .normal)
       _button.setImage(nil, for: .normal)
       _button.setBackgroundImage(nil, for: .normal)
-      if #available(iOS 13.0, *) {
-        _button.setPreferredSymbolConfiguration(nil, forImageIn: .normal)
+      _button.setPreferredSymbolConfiguration(nil, forImageIn: .normal)
+      if #available(iOS 15.0, *) {
+        _button.configuration = nil
       }
     }
     reloadHiddenStates()
@@ -252,16 +255,16 @@ open class EmptyView: UIView {
   // MARK: Private
 
   private func reloadHiddenStates() {
-    if let _imageView = _imageView {
+    if let _imageView {
       _imageView.isHidden = _imageView.image == nil
     }
-    if let _titleLabel = _titleLabel {
-      _titleLabel.isHidden = _titleLabel.text == nil && _titleLabel.attributedText == nil
+    if let _textLabel {
+      _textLabel.isHidden = _textLabel.text == nil && _textLabel.attributedText == nil
     }
-    if let _messageLabel = _messageLabel {
-      _messageLabel.isHidden = _messageLabel.text == nil && _messageLabel.attributedText == nil
+    if let _secondaryTextLabel {
+      _secondaryTextLabel.isHidden = _secondaryTextLabel.text == nil && _secondaryTextLabel.attributedText == nil
     }
-    if let _button = _button {
+    if let _button {
       _button.isHidden = !_button.hasContent
     }
   }
@@ -282,7 +285,7 @@ extension UIButton {
     if currentBackgroundImage != nil {
       return true
     }
-    if #available(iOS 13.0, *), currentPreferredSymbolConfiguration != nil {
+    if #available(iOS 15.0, *), configuration != nil {
       return true
     }
     return false
