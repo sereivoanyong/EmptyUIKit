@@ -30,7 +30,9 @@ extension EmptyView {
       switch (lhs, rhs) {
       case (.empty, .empty):
         return true
-      case (.empty, .error), (.error, .empty):
+      case (.empty, .error):
+        return false
+      case (.error, .empty):
         return false
       case (.error(let lhs), .error(let rhs)):
         return AnyEquatableError(error: lhs) == AnyEquatableError(error: rhs)
@@ -43,9 +45,9 @@ open class EmptyView: UIView {
 
   // This is not needed if the empty view is attached to either `UICollectionView` or `UITableView`,
   // and the provided state is never `.error`
-  open weak var stateProvider: EmptyViewStateProviding?
+  weak open var stateProvider: EmptyViewStateProviding?
 
-  open weak var dataSource: EmptyViewDataSource?
+  weak open var dataSource: EmptyViewDataSource?
 
   open private(set) var state: State? {
     didSet {
@@ -181,7 +183,7 @@ open class EmptyView: UIView {
 
   // MARK: Initializers
 
-  public override init(frame: CGRect = .zero) {
+  public override init(frame: CGRect) {
     super.init(frame: frame)
     commonInit()
   }
@@ -199,9 +201,9 @@ open class EmptyView: UIView {
     stackView.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
       stackView.topAnchor.constraint(equalTo: topAnchor),
-      stackView.leftAnchor.constraint(equalTo: leftAnchor),
+      stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
       bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
-      rightAnchor.constraint(equalTo: stackView.rightAnchor)
+      trailingAnchor.constraint(equalTo: stackView.trailingAnchor)
     ])
   }
 
@@ -248,6 +250,18 @@ open class EmptyView: UIView {
       if #available(iOS 15.0, *) {
         _button.configuration = nil
       }
+      if #available(iOS 14.0, *) {
+        _button.enumerateEventHandlers { action, targetActionPair, events, stop in
+          if let action {
+            _button.removeAction(action, for: events)
+          }
+          if let (target, action) = targetActionPair {
+            _button.removeTarget(target, action: action, for: events)
+          }
+        }
+      } else {
+        _button.removeTarget(nil, action: nil, for: .allEvents)
+      }
     }
     reloadHiddenStates()
   }
@@ -265,14 +279,14 @@ open class EmptyView: UIView {
       _secondaryTextLabel.isHidden = _secondaryTextLabel.text == nil && _secondaryTextLabel.attributedText == nil
     }
     if let _button {
-      _button.isHidden = !_button.hasContent
+      _button.isHidden = !_button.hasContents
     }
   }
 }
 
 extension UIButton {
 
-  fileprivate var hasContent: Bool {
+  fileprivate var hasContents: Bool {
     if currentTitle != nil {
       return true
     }
